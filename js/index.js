@@ -17,7 +17,9 @@ const db = new DB(function() {
             db.add(front, back);
             db.save();
             $("#front").val("");
+            autoGrow($("#front")[0]);
             $("#back").val("");
+            autoGrow($("#back")[0]);
             alert("Added.");
         });
     });
