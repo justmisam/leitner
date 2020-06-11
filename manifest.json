@@ -1,0 +1,16 @@
+{
+    "name": "Leitner",
+    "short_name": "Leitner",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#00a2cf",
+    "description": "A smart leitner.",
+    "theme_color": "#00a2cf",
+    "icons": [
+        {
+            "src": "./img/logo.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

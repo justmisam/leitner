@@ -1,0 +1,168 @@
+* {
+    font-family: sans-serif;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    margin: 0 auto;
+    max-width: 600px;
+}
+
+#head {
+    position: fixed;
+    background: #00a2cf;
+    width: 100%;
+    top: 0;
+    padding: 10px;
+    box-shadow: 0 0 2px 0 #202020;
+}
+#header {
+    text-align: left;
+    margin: 0 5px;
+}
+#title {
+    display: inline;
+    color: #FFF;
+    font-size: 24pt;
+    float: left;
+}
+#title a {
+    text-decoration: none;
+    color: #fff;
+}
+#menu {
+    position: relative;
+    display: inline-block;
+    float: right;
+}
+#menu-button {
+    color: white;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+#menu-content {
+    display: none;
+    position: absolute;
+    background-color: #f1f1f1;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+    left: -115px;
+}
+#menu-content a {
+    color: #000;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+#menu-content a:hover {
+    background-color: #ddd;
+}
+#menu:hover #menu-content {
+    display: block;
+}
+#search, #search:hover, #search:active, #search:focus {
+    border: none;
+    background: transparent;
+    padding: 5px;
+    margin: 7px 5px 8px;
+    outline: none;
+    color: #FFF;
+}
+#search::placeholder {
+    color: #fdfdfd;
+}
+#search::-webkit-input-placeholder {
+    color: #fdfdfd;
+}
+#search:-moz-placeholder {
+    color: #fdfdfd;
+    opacity: 1;
+}
+#search::-moz-placeholder {
+    color: #fdfdfd;
+    opacity: 1;
+}
+#search:-ms-input-placeholder {
+    color: #fdfdfd;
+}
+
+#content {
+    margin-top: 70px;
+}
+#form {
+    text-align: center;
+    margin: 0 5px;
+}
+.inputbox {
+    width: 100%;
+}
+.inputbox textarea {
+    width: 98%;
+    background: none;
+    border: 0;
+    outline: none;
+    border-radius: 0;
+    border-bottom: 1px solid #CECECE;
+    font-size: 13pt;
+    padding: 5px;
+}
+.inputbox textarea:hover, .inputbox textarea:focus {
+    border-bottom: 1px solid #00a2cf;
+}
+.buttonbox {
+    width: 100%;
+}
+.buttonbox button {
+    width: 100%;
+    margin: 5px 0;
+    border: 0;
+    outline: none;
+    border-radius: 0;
+    background: #CECECE;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 14pt;
+}
+.buttonbox button:hover, .buttonbox button:focus {
+    background: #afafaf;
+}
+
+#list {
+    margin: 0 5px;
+}
+#list ul {
+    margin: 0;
+    padding: 0;
+}
+#list ul li {
+    list-style: none;
+    margin: -1px 0;
+    border: 1px solid #a2a2a2;
+}
+#list ul li a {
+    display: block;
+    text-decoration: none;
+    color: #000;
+    padding: 10px;
+}
+#list ul li a:hover {
+    background: #c3c3c3;
+}
+
+#footer {
+    margin: 0;
+}
+#notice {
+    margin: 0 5px;
+    font-size: 9pt;
+    font-family: monospace;
+}
+#notice a {
+    color: #000;
+}

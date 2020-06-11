@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Leitner - Home</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <link rel="shortcut icon" type="image/x-icon" href='./img/favicon.png'/>
+    <link rel="stylesheet" type="text/css" href="./css/style.css?v=20200611-1">
+    <!-- PWA -->
+    <link rel="shortcut icon" type="image/x-icon" href='./img/logo.png?v=20200611-1'/>
+    <link rel="manifest" href="./manifest.json">
+    <!-- iOS -->
+    <link rel="apple-touch-icon" href="./img/logo-bg.png?v=20200611-2" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-status-bar-style" content="#00a2cf" />
+    <meta name="mobile-web-app-title" content="Leitner" />
+</head>
+<body>
+    <header id="head">
+        <div class="container">
+            <div id="header">
+                <div id="title"><a href="./">Leitner</a></div>
+                <div id="menu">
+                    <img id="menu-button" src="./img/menu.png" />
+                    <div id="menu-content">
+                        <a href="./list.html">List</a>
+                        <a href="./review.html">Review</a>
+                        <a href="javascript:exportDB();">Export</a>
+                        <a href="javascript:importDB();">Import</a>
+                        <a href="javascript:syncDB();">Sync</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <div id="content">
+        <div class="container">
+            <div id="form">
+                <div class="inputbox">
+                    <textarea id="front" placeholder="Front..." oninput="autoGrow(this);"></textarea>
+                </div>
+                <div class="inputbox">
+                    <textarea id="back" placeholder="Back..." oninput="autoGrow(this);"></textarea>
+                </div>
+                <div class="buttonbox">
+                    <button id="add">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer id="footer">
+        <div class="container">
+            <div id="notice">
+                <input id="file" type="file" style="display: none;" />
+                <p>Leitner by <a href="http://misam.ir">Misam</a></p>
+            </div>
+        </div>
+    </footer>
+    <script src="./js/jquery-3.5.1.min.js"></script>
+    <script src="./js/sql-wasm.js"></script>
+    <script src="./js/FileSaver.min.js"></script>
+    <script src="./js/Dropbox-sdk.min.js"></script>
+    <script src="./js/utils.js?v=20200611-2"></script>
+    <script src="./js/db.js?v=20200611-2"></script>
+    <script src="./js/backup.js?v=20200608-4"></script>
+    <script src="./js/index.js?v=20200610-1"></script>
+    <script src="./app.js?v=20200611-4"></script>
+</body>
+</html>
