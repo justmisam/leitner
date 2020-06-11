@@ -38,6 +38,6 @@ function remove() {
         var id = location.hash.substr(1);
         db.remove(id);
         db.save();
-        window.close();
+        window.location.href = "./index.html";
     }
 }
