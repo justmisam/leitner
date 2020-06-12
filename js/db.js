@@ -1,3 +1,21 @@
+async function putDB(db) {
+    const cacheName = "leitner-v1";
+    const cache = await caches.open(cacheName);
+    await cache.put("leitner.db", new Response(new Blob([db.export()]), {headers:{"Content-Type": "application/vnd.sqlite3"}}));
+}
+
+async function fetchDB(callbackFun) {
+    const cacheName = "leitner-v1";
+    const cache = await caches.open(cacheName);
+    const response = await cache.match("leitner.db");
+    if (response) {
+        const arrBuffer = await response.arrayBuffer();
+        callbackFun(new SQL.Database(new Uint8Array(arrBuffer)));
+    } else {
+        callbackFun(null);
+    }
+}
+
 class DB {
     constructor(callbackFun) {
         this.ready = false;
@@ -6,25 +24,26 @@ class DB {
         }
         var thisDB = this;
         initSqlJs(config).then(function(SQL) {
-            var dbstr = window.localStorage.getItem(gconfg.dbName);
-            if (dbstr) {
-                thisDB.db = new SQL.Database(toBinArray(dbstr));
-                thisDB.db.create_function("POW", function(x, y) {return x ** y;});
-                thisDB.ready = true;
-                callbackFun();
-            } else {
-                thisDB.db = new SQL.Database();
-                thisDB.db.run("CREATE TABLE cards (\
-                    id INTEGER PRIMARY KEY, \
-                    timestamp INTEGER, \
-                    box INTEGER, \
-                    front TEXT, \
-                    back TEXT \
-                )");
-                thisDB.db.create_function("POW", function(x, y) {return x ** y;});
-                thisDB.ready = true;
-                callbackFun();
-            }
+            (async() => await fetchDB(function(db) {
+                if (db) {
+                    thisDB.db = db;
+                    thisDB.db.create_function("POW", function(x, y) {return x ** y;});
+                    thisDB.ready = true;
+                    callbackFun();
+                } else {
+                    thisDB.db = new SQL.Database();
+                    thisDB.db.run("CREATE TABLE cards (\
+                        id INTEGER PRIMARY KEY, \
+                        timestamp INTEGER, \
+                        box INTEGER, \
+                        front TEXT, \
+                        back TEXT \
+                    )");
+                    thisDB.db.create_function("POW", function(x, y) {return x ** y;});
+                    thisDB.ready = true;
+                    callbackFun();
+                }
+            }))();
         });
     }
     
@@ -42,8 +61,7 @@ class DB {
     }
 
     save(timestamp=getNow()) {
-        var dbstr = toBinString(this.db.export());
-        window.localStorage.setItem(gconfg.dbName, dbstr);
+        (async() => await putDB(this.db))();
         window.localStorage.setItem("db.timestamp", timestamp);
     }
 
