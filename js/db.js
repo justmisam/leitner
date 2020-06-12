@@ -49,9 +49,9 @@ class DB {
 
     getAll(text, callbackFun, doneFun) {
         if (!this.ready) throw "DB is not ready yet!";
-        var query = "SELECT * FROM cards ORDER BY id DESC";
+        var query = "SELECT * FROM cards ORDER BY box ASC, id DESC;";
         if (text.length > 0) {
-            query = "SELECT * FROM cards WHERE front like '%" + text + "%' OR back like '%" + text + "%' ORDER BY id DESC";
+            query = "SELECT * FROM cards WHERE front like '%" + text + "%' OR back like '%" + text + "%' ORDER BY box ASC, id DESC;";
         }
         this.db.each(query,
             function callback(card) {
