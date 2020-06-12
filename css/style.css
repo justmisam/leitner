@@ -154,6 +154,13 @@ body {
 #list ul li a:hover {
     background: #c3c3c3;
 }
+#list ul li a .tip {
+    float: right;
+    background: #9a9a9a;
+    color: #fff;
+    padding: 1px 6px;
+    border-radius: 10px;
+}
 
 #footer {
     margin: 0;
