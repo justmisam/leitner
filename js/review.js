@@ -27,6 +27,8 @@ const db = new DB(function() {
                 db.save();
                 window.location.replace("./review.html");
             });
+
+            $("#status").text(db.getReviewsCount() + " card(s) to review!");
         } catch(err) {
             alert(err);
             window.location.replace("./index.html");

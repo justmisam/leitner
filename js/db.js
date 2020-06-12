@@ -79,6 +79,13 @@ class DB {
         };
     }
 
+    getReviewsCount() {
+        if (!this.ready) throw "DB is not ready yet!";
+        return this.db.exec(
+            "SELECT count(*) FROM cards WHERE box < " + (gconfg.maxBox + 1) + " AND (" + getNow() + " - timestamp) >= (POW(2, (box - 1)) * 86400 - " + gconfg.softDiff + ");"
+        )[0].values[0][0]
+    }
+
     get(id) {
         if (!this.ready) throw "DB is not ready yet!";
         var cards = this.db.exec("SELECT * FROM cards WHERE id = " + id);

@@ -166,3 +166,6 @@ body {
 #notice a {
     color: #000;
 }
+#status {
+    float: right;
+}
