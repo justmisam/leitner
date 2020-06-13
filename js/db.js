@@ -1,54 +1,48 @@
-async function putDB(db) {
-    const cacheName = "leitner-v1";
-    const cache = await caches.open(cacheName);
-    await cache.put("leitner.db", new Response(new Blob([db.export()]), {headers:{"Content-Type": "application/vnd.sqlite3"}}));
-}
+defaultOnsuccess = function(result) {
+    console.log(result);
+};
 
-async function fetchDB(callbackFun) {
-    const cacheName = "leitner-v1";
-    const cache = await caches.open(cacheName);
-    const response = await cache.match("leitner.db");
-    if (response) {
-        const arrBuffer = await response.arrayBuffer();
-        callbackFun(new SQL.Database(new Uint8Array(arrBuffer)));
-    } else {
-        callbackFun(null);
-    }
-}
+defaultOnerror = function(error) {
+    alert(error);
+    throw error;
+};
 
 class DB {
-    constructor(callbackFun) {
-        this.ready = false;
-        var config = {
-            locateFile: filename => `https://sql-js.github.io/sql.js/dist/${filename}`
+    constructor(onsuccess=defaultOnsuccess, onerror=defaultOnerror) {
+        const thisClass = this;
+        if (window.indexedDB == null) {
+            throw "This browser does not support IndexedDB!"
         }
-        var thisDB = this;
-        initSqlJs(config).then(function(SQL) {
-            (async() => await fetchDB(function(db) {
-                if (db) {
-                    thisDB.db = db;
-                    thisDB.db.create_function("POW", function(x, y) {return x ** y;});
-                    thisDB.ready = true;
-                    callbackFun();
-                } else {
-                    thisDB.db = new SQL.Database();
-                    thisDB.db.run("CREATE TABLE cards (\
-                        id INTEGER PRIMARY KEY, \
-                        timestamp INTEGER, \
-                        box INTEGER, \
-                        front TEXT, \
-                        back TEXT \
-                    )");
-                    thisDB.db.create_function("POW", function(x, y) {return x ** y;});
-                    thisDB.ready = true;
-                    callbackFun();
-                }
-            }))();
-        });
+        let request = window.indexedDB.open("leitner", 1);
+        request.onerror = function(event) {
+            onerror(event.target.error);
+        };
+        request.onupgradeneeded = function(event) {
+            thisClass.db = event.target.result;
+            switch(thisClass.db.version) {
+                case 1:
+                let objectStore = thisClass.db.createObjectStore("cards", {keyPath: "id", autoIncrement: true});
+                objectStore.createIndex("box", "box", {unique: false});
+                objectStore.createIndex("box_timestamp", ["box", "timestamp"], {unique: false});
+                break;
+            }
+            thisClass.db.onversionchange = function(event) {
+                thisClass.db.close();
+                alert("A new version of this page is ready. Please reload or close this tab!");
+            };
+        };
+        request.onsuccess = function(event) {
+            thisClass.db = event.target.result;
+            thisClass.db.onversionchange = function(event) {
+                thisClass.db.close();
+                alert("A new version of this page is ready. Please reload or close this tab!");
+            };
+            onsuccess("Opened.");
+        };
     }
-    
-    get isReady() {
-        return this.ready;
+
+    setTimestamp(timestamp=getNow()) {
+        window.localStorage.setItem("db.timestamp", timestamp);
     }
 
     getTimestamp() {
@@ -60,99 +54,227 @@ class DB {
         }
     }
 
-    save(timestamp=getNow()) {
-        (async() => await putDB(this.db))();
-        window.localStorage.setItem("db.timestamp", timestamp);
+    add(front, back, onsuccess=defaultOnsuccess, onerror=defaultOnerror) {
+        const thisClass = this;
+        let transaction = this.db.transaction("cards", "readwrite");
+        let request = transaction.objectStore("cards").add({
+            timestamp: -getNow(),
+            box: 1,
+            front: front,
+            back: back
+        });
+        request.onerror = function(event) {
+            onerror(event.target.error);
+        };
+        request.onsuccess = function(event) {
+            thisClass.setTimestamp();
+            let id = event.target.result;
+            onsuccess(id);
+        };
+        transaction.onabort = function(event) {
+            onerror(event.target.error);
+        };
     }
 
-    getAll(text, callbackFun, doneFun) {
-        if (!this.ready) throw "DB is not ready yet!";
-        var query = "SELECT * FROM cards ORDER BY box ASC, id DESC;";
-        if (text.length > 0) {
-            query = "SELECT * FROM cards WHERE front like '%" + text + "%' OR back like '%" + text + "%' ORDER BY box ASC, id DESC;";
-        }
-        this.db.each(query,
-            function callback(card) {
-                callbackFun(card);
-            }, function done() {
-                doneFun();
+    forEach(text, oneach=defaultOnsuccess, oncomplete=function(){}) {
+        let objectStore = this.db.transaction("cards", "readonly").objectStore("cards");
+        objectStore.index("box_timestamp").openCursor().onsuccess = function (event) {
+            let cursor = event.target.result;
+            if (cursor) {
+                let card = cursor.value;
+                card.timestamp *= -1;
+                if (text.length > 0) {
+                    if ((card.front + " " + card.back).search(text) >= 0) {
+                        oneach(card);
+                    }
+                } else {
+                    oneach(card);
+                }
+                cursor.continue();
+            } else {
+                oncomplete();
             }
-        );
+        }
     }
 
-    getReview() {
-        if (!this.ready) throw "DB is not ready yet!";
-        var cards = this.db.exec(
-            "SELECT * FROM cards WHERE box < " + (gconfg.maxBox + 1) + " AND (" + getNow() + " - timestamp) >= (POW(2, (box - 1)) * 86400 - " + gconfg.softDiff + ") ORDER BY RANDOM() LIMIT 1;"
-        );
-        if (cards.length < 1) {
-            throw "Nothing to review!"
+    findReview(onfind=defaultOnsuccess, oncomplete=null) {
+        var i = 0;
+        var isFound = false;
+        const now = getNow();
+        let objectStore = this.db.transaction("cards", "readonly").objectStore("cards");
+        objectStore.openCursor().onsuccess = function (event) {
+            let cursor = event.target.result;
+            if (cursor) {
+                let card = cursor.value;
+                card.timestamp *= -1;
+                let currentDiff = now - card.timestamp;
+                let mustDiff = 2 ** (card.box - 1) * 86400 - gconfg.softDiff;
+                if (card.box < (gconfg.maxBox + 1) && currentDiff >= mustDiff) {
+                    i++;
+                    if (!isFound) {
+                        isFound = true;
+                        onfind(card);
+                    }
+                    if (oncomplete) cursor.continue();
+                } else {
+                    cursor.continue();
+                }
+            } else {
+                oncomplete(i);
+            }
         }
-        return {
-            id: cards[0].values[0][0],
-            timestamp: cards[0].values[0][1],
-            box: cards[0].values[0][2],
-            front: cards[0].values[0][3],
-            back: cards[0].values[0][4]
+    }
+
+    get(id, onsuccess=defaultOnsuccess, onerror=defaultOnerror) {
+        let objectStore = this.db.transaction("cards", "readonly").objectStore("cards");
+        let request = objectStore.get(id);
+        request.onerror = function(event) {
+            onerror(event.target.error);
+        };
+        request.onsuccess = function(event) {
+            let card = event.target.result;
+            if (card) {
+                card.timestamp *= -1;
+            }
+            onsuccess(card);
         };
     }
 
-    getReviewsCount() {
-        if (!this.ready) throw "DB is not ready yet!";
-        return this.db.exec(
-            "SELECT count(*) FROM cards WHERE box < " + (gconfg.maxBox + 1) + " AND (" + getNow() + " - timestamp) >= (POW(2, (box - 1)) * 86400 - " + gconfg.softDiff + ");"
-        )[0].values[0][0]
-    }
-
-    get(id) {
-        if (!this.ready) throw "DB is not ready yet!";
-        var cards = this.db.exec("SELECT * FROM cards WHERE id = " + id);
-        if (cards.length < 1) {
-            throw "Card not found!"
-        }
-        return {
-            id: cards[0].values[0][0],
-            timestamp: cards[0].values[0][1],
-            box: cards[0].values[0][2],
-            front: cards[0].values[0][3],
-            back: cards[0].values[0][4]
+    edit(id, front, back, onsuccess=defaultOnsuccess, onerror=defaultOnerror) {
+        const thisClass = this;
+        let transaction = this.db.transaction("cards", "readwrite");
+        let objectStore = transaction.objectStore("cards");
+        let request = objectStore.get(id);
+        request.onerror = function(event) {
+            onerror(event.target.error);
+        };
+        request.onsuccess = function(event) {
+            let card = event.target.result;
+            if (card) {
+                card.front = front;
+                card.back = back;
+                let putRequest = objectStore.put(card);
+                putRequest.onerror = function(event) {
+                    onerror(event.target.error);
+                };
+                transaction.oncomplete = function(event) {
+                    thisClass.setTimestamp();
+                    onsuccess("Edited.");
+                };
+            } else {
+                onerror("Card not found!");
+            }
+        };
+        transaction.onabort = function(event) {
+            onerror(event.target.error);
         };
     }
 
-    add(front, back) {
-        if (!this.ready) throw "DB is not ready yet!";
-        this.db.run(
-            "INSERT INTO cards(timestamp, box, front, back) VALUES (?, ?, ?, ?)",
-            [getNow(), 1, front, back]
-        );
+    increaseBox(id, onsuccess=defaultOnsuccess, onerror=defaultOnerror) {
+        const thisClass = this;
+        let transaction = this.db.transaction("cards", "readwrite");
+        let objectStore = transaction.objectStore("cards");
+        let request = objectStore.get(id);
+        request.onerror = function(event) {
+            onerror(event.target.error);
+        };
+        request.onsuccess = function(event) {
+            let card = event.target.result;
+            if (card) {
+                if (card.box < 6) {
+                    card.box += 1;
+                    card.timestamp = -getNow();
+                    let putRequest = objectStore.put(card);
+                    putRequest.onerror = function(event) {
+                        onerror(event.target.error);
+                    };
+                    transaction.oncomplete = function(event) {
+                        thisClass.setTimestamp();
+                        onsuccess("Increased.");
+                    };
+                }
+            } else {
+                onerror("Card not found!");
+            }
+        };
+        transaction.onabort = function(event) {
+            onerror(event.target.error);
+        };
     }
 
-    edit(id, front, back) {
-        if (!this.ready) throw "DB is not ready yet!";
-        this.db.run(
-            "UPDATE cards SET front = ?, back = ? WHERE id = ?",
-            [front, back, id]
-        );
+    reset(id, onsuccess=defaultOnsuccess, onerror=defaultOnerror) {
+        const thisClass = this;
+        let transaction = this.db.transaction("cards", "readwrite");
+        let objectStore = transaction.objectStore("cards");
+        let request = objectStore.get(id);
+        request.onerror = function(event) {
+            onerror(event.target.error);
+        };
+        request.onsuccess = function(event) {
+            let card = event.target.result;
+            if (card) {
+                card.box = 1;
+                card.timestamp = -getNow();
+                let putRequest = objectStore.put(card);
+                putRequest.onerror = function(event) {
+                    onerror(event.target.error);
+                };
+                transaction.oncomplete = function(event) {
+                    thisClass.setTimestamp();
+                    onsuccess("Reset.");
+                };
+            } else {
+                onerror("Card not found!");
+            }
+        };
+        transaction.onabort = function(event) {
+            onerror(event.target.error);
+        };
     }
 
-    reset(id) {
-        if (!this.ready) throw "DB is not ready yet!";
-        this.db.run(
-            "UPDATE cards SET timestamp = ?, box = 1 WHERE id = ?",
-            [getNow(), id]
-        );
+    remove(id, onsuccess=defaultOnsuccess, onerror=defaultOnerror) {
+        const thisClass = this;
+        let transaction = this.db.transaction("cards", "readwrite");
+        let request = transaction.objectStore("cards").delete(id);
+        request.onerror = function(event) {
+            onerror(event.target.error);
+        };
+        transaction.onabort = function(event) {
+            onerror(event.target.error);
+        };
+        transaction.oncomplete = function(event) {
+            thisClass.setTimestamp();
+            onsuccess("Removed.");
+        };
     }
 
-    remove(id) {
-        if (!this.ready) throw "DB is not ready yet!";
-        this.db.exec("DELETE FROM cards WHERE id = " + id);
-    }
-
-    increaseBox(id) {
-        if (!this.ready) throw "DB is not ready yet!";
-        this.db.run(
-            "UPDATE cards SET box = box + 1 WHERE id = ? AND BOX < ?",
-            [id, gconfg.maxBox + 1]
-        );
+    import(cards, timestamp, onsuccess=defaultOnsuccess, onerror=defaultOnerror) {
+        const thisClass = this;
+        let transaction = this.db.transaction("cards", "readwrite");
+        let objectStore = transaction.objectStore("cards");
+        let request = objectStore.clear();
+        request.onerror = function(event) {
+            onerror(event.target.error);
+        };
+        request.onsuccess = function(event) {
+            var i = 0;
+            for (let card of cards) {
+                card.timestamp *= -1;
+                let putRequest = objectStore.put(card);
+                putRequest.onerror = function(event) {
+                    onerror(event.target.error);
+                };
+                putRequest.onsuccess = function(event) {
+                    i++;
+                    if (i == cards.length) {
+                        thisClass.setTimestamp(timestamp);
+                        onsuccess();
+                    }
+                }
+            }
+        };
+        transaction.onabort = function(event) {
+            onerror(event.target.error);
+        };
     }
 }

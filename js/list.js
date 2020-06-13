@@ -1,7 +1,7 @@
-function filter(text) {
+function filter(db, text) {
     var i = 0;
     $("#list ul").html("");
-    db.getAll(text, function(card) {
+    db.forEach(text, function(card) {
         i++;
         $("#list ul").append("<li><a href=\"./edit.html#" + card.id + "\">" + card.front + "<span class=\"tip\">" + card.box + "</span></a></li>");
     }, function() {
@@ -11,12 +11,14 @@ function filter(text) {
     });
 }
 
-const db = new DB(function() {
-    $(document).ready(function() {
-        filter("");
+$(document).ready(function() {
+    window.indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
+
+    const db = new DB(function() {
+        filter(db, "");
 
         $("#search").on("change keyup", function() {
-            filter($(this).val());
+            filter(db, $(this).val());
         });
     });
 });

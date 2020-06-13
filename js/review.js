@@ -1,8 +1,8 @@
-const db = new DB(function() {
-    $(document).ready(function() {
-        try {
-            var card = db.getReview();
-            
+$(document).ready(function() {
+    window.indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
+
+    const db = new DB(function() {
+        db.findReview(function(card) {
             $("#edit_link").attr("href", $("#edit_link").attr("href").replace("@", card.id));
             $("#front").val(card.front);
             autoGrow($("#front")[0]);
@@ -17,21 +17,23 @@ const db = new DB(function() {
             });
 
             $("#know").click(function () {
-                db.increaseBox(card.id);
-                db.save();
-                window.location.replace("./review.html");
+                db.increaseBox(card.id, function() {
+                    window.location.replace("./review.html");
+                });
             });
 
             $("#dont").click(function () {
-                db.reset(card.id);
-                db.save();
-                window.location.replace("./review.html");
+                db.reset(card.id, function() {
+                    window.location.replace("./review.html");
+                });
             });
-
-            $("#status").text(db.getReviewsCount() + " card(s) to review!");
-        } catch(err) {
-            alert(err);
-            window.location.replace("./index.html");
-        }
+        }, function(count) {
+            if (count > 0) {
+                $("#status").text(count + " card(s) to review!");
+            } else {
+                alert("Nothing to review!");
+                window.close();
+            }
+        });
     });
 });

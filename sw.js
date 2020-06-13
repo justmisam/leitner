@@ -14,10 +14,7 @@ const libScriptAssets = [
     "/js/Dropbox-sdk.min.js",
     "/js/FileSaver.min.js",
     "/js/FileSaver.min.js.map",
-    "/js/jquery-3.5.1.min.js",
-    "/js/sql-wasm.js",
-    "/js/sql-wasm.wasm",
-    "https://sql-js.github.io/sql.js/dist/sql-wasm.wasm"
+    "/js/jquery-3.5.1.min.js"
 ]
 const basicScriptAssets = [
     "/js/backup.js",
