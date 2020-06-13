@@ -32,7 +32,7 @@ $(document).ready(function() {
                 $("#status").text(count + " card(s) to review!");
             } else {
                 alert("Nothing to review!");
-                window.close();
+                window.location.replace("./index.html");
             }
         });
     });
