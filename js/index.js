@@ -27,7 +27,6 @@ $(document).ready(function() {
                 autoGrow($("#front")[0]);
                 $("#back").val("");
                 autoGrow($("#back")[0]);
-                alert("Added.");
             });
         });
 
