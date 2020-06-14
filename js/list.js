@@ -1,7 +1,7 @@
 function filter(db, text) {
     var i = 0;
     $("#list ul").html("");
-    db.forEach(text, function(card) {
+    db.search(text, function(card) {
         i++;
         $("#list ul").append("<li><a href=\"./edit.html#" + card.id + "\">" + card.front + "<span class=\"tip\">" + card.box + "</span></a></li>");
     }, function() {

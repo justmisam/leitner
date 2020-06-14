@@ -23,6 +23,7 @@ class DB {
                 case 1:
                 let objectStore = thisClass.db.createObjectStore("cards", {keyPath: "id", autoIncrement: true});
                 objectStore.createIndex("box", "box", {unique: false});
+                objectStore.createIndex("timestamp", "timestamp", {unique: false});
                 objectStore.createIndex("box_timestamp", ["box", "timestamp"], {unique: false});
                 break;
             }
@@ -41,21 +42,7 @@ class DB {
         };
     }
 
-    setTimestamp(timestamp=getNow()) {
-        window.localStorage.setItem("db.timestamp", timestamp);
-    }
-
-    getTimestamp() {
-        var timestamp = window.localStorage.getItem("db.timestamp");
-        if (timestamp) {
-            return parseInt(timestamp);
-        } else {
-            return 0;
-        }
-    }
-
     add(front, back, onsuccess=defaultOnsuccess, onerror=defaultOnerror) {
-        const thisClass = this;
         let transaction = this.db.transaction("cards", "readwrite");
         let request = transaction.objectStore("cards").add({
             timestamp: -getNow(),
@@ -67,7 +54,6 @@ class DB {
             onerror(event.target.error);
         };
         request.onsuccess = function(event) {
-            thisClass.setTimestamp();
             let id = event.target.result;
             onsuccess(id);
         };
@@ -76,7 +62,34 @@ class DB {
         };
     }
 
-    forEach(text, oneach=defaultOnsuccess, oncomplete=function(){}) {
+    getLastTimestamp(onsuccess=defaultOnsuccess) {
+        let objectStore = this.db.transaction("cards", "readonly").objectStore("cards");
+        objectStore.index("timestamp").openCursor().onsuccess = function (event) {
+            let cursor = event.target.result;
+            if (cursor) {
+                onsuccess(-cursor.value.timestamp);
+            } else {
+                onsuccess(0);
+            }
+        }
+    }
+
+    forEach(timestamp=0, oneach=defaultOnsuccess, oncomplete=function(){}) {
+        let objectStore = this.db.transaction("cards", "readonly").objectStore("cards");
+        objectStore.index("timestamp").openCursor(IDBKeyRange.upperBound(-timestamp, true), "prev").onsuccess = function (event) {
+            let cursor = event.target.result;
+            if (cursor) {
+                let card = cursor.value;
+                card.timestamp *= -1;
+                oneach(card);
+                cursor.continue();
+            } else {
+                oncomplete();
+            }
+        }
+    }
+
+    search(text, oneach=defaultOnsuccess, oncomplete=function(){}) {
         let objectStore = this.db.transaction("cards", "readonly").objectStore("cards");
         objectStore.index("box_timestamp").openCursor().onsuccess = function (event) {
             let cursor = event.target.result;
@@ -141,7 +154,6 @@ class DB {
     }
 
     edit(id, front, back, onsuccess=defaultOnsuccess, onerror=defaultOnerror) {
-        const thisClass = this;
         let transaction = this.db.transaction("cards", "readwrite");
         let objectStore = transaction.objectStore("cards");
         let request = objectStore.get(id);
@@ -153,12 +165,12 @@ class DB {
             if (card) {
                 card.front = front;
                 card.back = back;
+                card.timestamp = -getNow();
                 let putRequest = objectStore.put(card);
                 putRequest.onerror = function(event) {
                     onerror(event.target.error);
                 };
                 transaction.oncomplete = function(event) {
-                    thisClass.setTimestamp();
                     onsuccess("Edited.");
                 };
             } else {
@@ -171,7 +183,6 @@ class DB {
     }
 
     increaseBox(id, onsuccess=defaultOnsuccess, onerror=defaultOnerror) {
-        const thisClass = this;
         let transaction = this.db.transaction("cards", "readwrite");
         let objectStore = transaction.objectStore("cards");
         let request = objectStore.get(id);
@@ -189,7 +200,6 @@ class DB {
                         onerror(event.target.error);
                     };
                     transaction.oncomplete = function(event) {
-                        thisClass.setTimestamp();
                         onsuccess("Increased.");
                     };
                 }
@@ -203,7 +213,6 @@ class DB {
     }
 
     reset(id, onsuccess=defaultOnsuccess, onerror=defaultOnerror) {
-        const thisClass = this;
         let transaction = this.db.transaction("cards", "readwrite");
         let objectStore = transaction.objectStore("cards");
         let request = objectStore.get(id);
@@ -220,7 +229,6 @@ class DB {
                     onerror(event.target.error);
                 };
                 transaction.oncomplete = function(event) {
-                    thisClass.setTimestamp();
                     onsuccess("Reset.");
                 };
             } else {
@@ -233,7 +241,6 @@ class DB {
     }
 
     remove(id, onsuccess=defaultOnsuccess, onerror=defaultOnerror) {
-        const thisClass = this;
         let transaction = this.db.transaction("cards", "readwrite");
         let request = transaction.objectStore("cards").delete(id);
         request.onerror = function(event) {
@@ -243,36 +250,27 @@ class DB {
             onerror(event.target.error);
         };
         transaction.oncomplete = function(event) {
-            thisClass.setTimestamp();
             onsuccess("Removed.");
         };
     }
 
-    import(cards, timestamp, onsuccess=defaultOnsuccess, onerror=defaultOnerror) {
-        const thisClass = this;
+    import(cards, onsuccess=defaultOnsuccess, onerror=defaultOnerror) {
         let transaction = this.db.transaction("cards", "readwrite");
         let objectStore = transaction.objectStore("cards");
-        let request = objectStore.clear();
-        request.onerror = function(event) {
-            onerror(event.target.error);
-        };
-        request.onsuccess = function(event) {
-            var i = 0;
-            for (let card of cards) {
-                card.timestamp *= -1;
-                let putRequest = objectStore.put(card);
-                putRequest.onerror = function(event) {
-                    onerror(event.target.error);
-                };
-                putRequest.onsuccess = function(event) {
-                    i++;
-                    if (i == cards.length) {
-                        thisClass.setTimestamp(timestamp);
-                        onsuccess();
-                    }
+        var i = 0;
+        for (let card of cards) {
+            card.timestamp *= -1;
+            let request = objectStore.put(card);
+            request.onerror = function(event) {
+                onerror(event.target.error);
+            };
+            request.onsuccess = function(event) {
+                i++;
+                if (i == cards.length) {
+                    onsuccess();
                 }
             }
-        };
+        }
         transaction.onabort = function(event) {
             onerror(event.target.error);
         };
