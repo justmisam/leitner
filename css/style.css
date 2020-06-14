@@ -109,7 +109,7 @@ body {
     outline: none;
     border-radius: 0;
     border-bottom: 1px solid #CECECE;
-    font-size: 13pt;
+    font-size: 14pt;
     padding: 5px;
 }
 .inputbox textarea:hover, .inputbox textarea:focus {
