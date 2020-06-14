@@ -92,7 +92,7 @@ $(document).ready(function() {
                                             const reader2 = new FileReader();
                                             reader2.onload = function() {
                                                 const cards = JSON.parse(this.result);
-                                                db.import(cards, timestamp, function(number) {
+                                                db.import(cards, function(number) {
                                                     alert("Synced.");
                                                 });
                                             }
