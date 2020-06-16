@@ -16,14 +16,14 @@ $(document).ready(function() {
                     var front = $("#front").val();
                     var back = $("#back").val();
                     db.edit(id, front, back, function() {
-                        alert("Edited.");
+                        $.snackbar({content: "Edited.", style: "toast"});
                     });
                 });
             
                 $("#reset").click(function () {
                     db.reset(id, function() {
                         $("#reset").text($("#reset").text().replace("#", 1));
-                        alert("Reset.");
+                        $.snackbar({content: "Reset.", style: "toast"});
                     });
                 });
 
