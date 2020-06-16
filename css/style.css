@@ -177,7 +177,17 @@ body {
     float: right;
 }
 
+#snackbar-container {
+    position: fixed;
+    left: 20px;
+    bottom: 0;
+    z-index: 99999
+}
 .snackbar {
+    overflow: hidden;
+    clear: both;
+    cursor: pointer;
+    opacity: 0;
     background-color: #323232;
     color: #FFFFFF;
     font-size: 14px;
@@ -190,10 +200,9 @@ body {
     -moz-transform: translateY(200%);
     -webkit-transform: translateY(200%);
     transform: translateY(200%);
-    min-width: 50px !important;
-    width: fit-content !important;
 }
 .snackbar.snackbar-opened {
+    opacity: 1;
     padding: 14px 15px;
     margin-bottom: 20px;
     height: auto;

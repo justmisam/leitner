@@ -1,8 +1,5 @@
 const cacheName = "leitner-v1";
 
-const libCssAssets = [
-    "/css/snackbar.min.css"
-]
 const cssAssets = [
     "/css/style.css"
 ]
@@ -43,7 +40,6 @@ const PWAAssets = [
 
 self.addEventListener("install", async event => {
     const cache = await caches.open(cacheName);
-    await cache.addAll(libCssAssets);
     await cache.addAll(cssAssets);
     await cache.addAll(imgAssets);
     await cache.addAll(libScriptAssets);
@@ -56,7 +52,7 @@ self.addEventListener("install", async event => {
 self.addEventListener("fetch", event => {
     const appURL = "https://leitner.misam.ir";
     const req = event.request;
-    const catchAssets = [].concat(...[libCssAssets, cssAssets, imgAssets, libScriptAssets, basicScriptAssets, pageScriptAssets, PWAAssets]);
+    const catchAssets = [].concat(...[cssAssets, imgAssets, libScriptAssets, basicScriptAssets, pageScriptAssets, PWAAssets]);
     var isCacheFirst = false;
     for (var url of catchAssets) {
         if (!url.startsWith("/")) {
