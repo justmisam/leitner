@@ -14,7 +14,7 @@ const libScriptAssets = [
     "/js/Dropbox-sdk.min.js",
     "/js/FileSaver.min.js",
     "/js/FileSaver.min.js.map",
-    "/js/jquery-3.5.1.min.js",
+    "/js/jquery-1.11.1.min.js",
     "js/snackbar.min.js"
 ]
 const basicScriptAssets = [
