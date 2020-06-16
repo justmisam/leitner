@@ -1,4 +1,12 @@
 $(document).ready(function() {
+    Notification.requestPermission(result => {
+        if (result === "granted") {
+            // Nothing!
+        } else {
+            console.warn(result);
+        }
+    });
+
     window.indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
 
     autoGrow($("#front")[0]);

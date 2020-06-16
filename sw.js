@@ -87,3 +87,36 @@ async function cacheFirst(req) {
     const cachedResponse = await cache.match(req);
     return cachedResponse || networkFirst(req);
 }
+
+var window = self;
+importScripts("/js/utils.js");
+importScripts("/js/db.js");
+
+function showNotification(title, message, tag) {
+    return new Promise(resolve => {
+        self.registration
+            .getNotifications({ tag })
+            .then(existingNotifications => {})
+            .then(() => {
+                const icon = "/img/favicon.png";
+                return self.registration.showNotification(title, {body: message, tag: tag, icon: icon})
+            })
+            .then(resolve)
+    })
+}
+
+self.addEventListener("notificationclick", event => {
+    event.waitUntil(clients.openWindow("/review.html"));
+});
+
+setInterval(function() {
+    var date = new Date();
+    if(date.getHours() === 9) {
+        const db = new DB(function() {
+            db.findReview(function() {}, function(count) {
+                console.log(count);
+                showNotification("Leitner", "There are " + count + " card(s) to review!", getNow());
+            });
+        });
+    }
+}, 1000*60*60);
