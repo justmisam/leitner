@@ -190,6 +190,7 @@ body {
     -moz-transform: translateY(200%);
     -webkit-transform: translateY(200%);
     transform: translateY(200%);
+    min-width: 50px;
   }
 .snackbar.snackbar-opened {
     padding: 14px 15px;
