@@ -272,12 +272,12 @@ class DB {
                         putRequest.onerror = function(event) {
                             onerror(event.target.error);
                         };
-                        transaction.oncomplete = function(event) {
+                        putRequest.onsuccess = function(event) {
                             i++;
                             if (i == cards.length) {
                                 onsuccess();
                             }
-                        };
+                        }
                     }
                 }
             };
