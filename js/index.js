@@ -104,7 +104,7 @@ $(document).ready(function() {
                                             const reader2 = new FileReader();
                                             reader2.onload = function() {
                                                 const cards = JSON.parse(this.result);
-                                                db.import(cards, function(number) {
+                                                db.update(cards, function(number) {
                                                     alert("Synced.");
                                                 });
                                             }

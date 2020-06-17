@@ -254,23 +254,62 @@ class DB {
         };
     }
 
-    import(cards, onsuccess=defaultOnsuccess, onerror=defaultOnerror) {
+    update(cards, onsuccess=defaultOnsuccess, onerror=defaultOnerror) {
         let transaction = this.db.transaction("cards", "readwrite");
         let objectStore = transaction.objectStore("cards");
         var i = 0;
         for (let card of cards) {
             card.timestamp *= -1;
-            let request = objectStore.put(card);
+            let request = objectStore.get(card.id);
             request.onerror = function(event) {
                 onerror(event.target.error);
             };
             request.onsuccess = function(event) {
-                i++;
-                if (i == cards.length) {
-                    onsuccess();
+                let oldCard = event.target.result;
+                if (oldCard) {
+                    if (oldCard.timestamp < card.timestamp) {
+                        let putRequest = objectStore.put(card);
+                        putRequest.onerror = function(event) {
+                            onerror(event.target.error);
+                        };
+                        transaction.oncomplete = function(event) {
+                            i++;
+                            if (i == cards.length) {
+                                onsuccess();
+                            }
+                        };
+                    }
+                }
+            };
+        }
+        transaction.onabort = function(event) {
+            onerror(event.target.error);
+        };
+    }
+
+    import(cards, onsuccess=defaultOnsuccess, onerror=defaultOnerror) {
+        let transaction = this.db.transaction("cards", "readwrite");
+        let objectStore = transaction.objectStore("cards");
+        let request = objectStore.clear();
+        request.onerror = function(event) {
+            onerror(event.target.error);
+        };
+        request.onsuccess = function(event) {
+            var i = 0;
+            for (let card of cards) {
+                card.timestamp *= -1;
+                let request = objectStore.put(card);
+                request.onerror = function(event) {
+                    onerror(event.target.error);
+                };
+                request.onsuccess = function(event) {
+                    i++;
+                    if (i == cards.length) {
+                        onsuccess();
+                    }
                 }
             }
-        }
+        };
         transaction.onabort = function(event) {
             onerror(event.target.error);
         };
