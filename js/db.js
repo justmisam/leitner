@@ -268,7 +268,7 @@ class DB {
                 let oldCard = event.target.result;
                 let need_update = true;
                 if (oldCard) {
-                    if (oldCard.timestamp >= card.timestamp) {
+                    if (oldCard.timestamp < card.timestamp) {
                         need_update = false;
                     }
                 }
