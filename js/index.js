@@ -1,11 +1,15 @@
 $(document).ready(function() {
-    Notification.requestPermission(result => {
-        if (result === "granted") {
-            // Nothing!
-        } else {
-            console.warn(result);
-        }
-    });
+    if ("Notification" in window) {
+        Notification.requestPermission(result => {
+            if (result === "granted") {
+                // Nothing!
+            } else {
+                console.warn(result);
+            }
+        });
+    } else {
+        // It's maybe iOS!
+    }
 
     window.indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
 
