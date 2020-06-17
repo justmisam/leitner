@@ -266,18 +266,27 @@ class DB {
             };
             request.onsuccess = function(event) {
                 let oldCard = event.target.result;
+                let need_update = true;
                 if (oldCard) {
-                    if (oldCard.timestamp < card.timestamp) {
-                        let putRequest = objectStore.put(card);
-                        putRequest.onerror = function(event) {
-                            onerror(event.target.error);
-                        };
-                        putRequest.onsuccess = function(event) {
-                            i++;
-                            if (i == cards.length) {
-                                onsuccess();
-                            }
+                    if (oldCard.timestamp >= card.timestamp) {
+                        need_update = false;
+                    }
+                }
+                if (need_update) {
+                    let putRequest = objectStore.put(card);
+                    putRequest.onerror = function(event) {
+                        onerror(event.target.error);
+                    };
+                    putRequest.onsuccess = function(event) {
+                        i++;
+                        if (i == cards.length) {
+                            onsuccess();
                         }
+                    }
+                } else {
+                    i++;
+                    if (i == cards.length) {
+                        onsuccess();
                     }
                 }
             };
