@@ -1,6 +1,6 @@
 # Letiner
 
-Smart Letiner.
+Smart Leitner.
 
 PWA version of [Pronunciation](https://cafebazaar.ir/app/ir.misam.leitner)
 
