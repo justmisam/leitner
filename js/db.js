@@ -90,6 +90,7 @@ class DB {
     }
 
     search(text, oneach=defaultOnsuccess, oncomplete=function(){}) {
+        text = text.toLowerCase()
         let objectStore = this.db.transaction("cards", "readonly").objectStore("cards");
         objectStore.index("box_timestamp").openCursor().onsuccess = function (event) {
             let cursor = event.target.result;
@@ -97,7 +98,7 @@ class DB {
                 let card = cursor.value;
                 card.timestamp *= -1;
                 if (text.length > 0) {
-                    if ((card.front + " " + card.back).search(text) >= 0) {
+                    if ((card.front + " " + card.back).toLowerCase().search(text) >= 0) {
                         oneach(card);
                     }
                 } else {

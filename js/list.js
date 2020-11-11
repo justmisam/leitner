@@ -1,4 +1,8 @@
+var filterLock = false;
+
 function filter(db, text) {
+    if (filterLock) return;
+    filterLock = true;
     var i = 0;
     $("#list ul").html("");
     db.search(text, function(card) {
@@ -8,6 +12,8 @@ function filter(db, text) {
         if (i == 0) {
             $("#list ul").html("<br/>List is empty!");
         }
+    }, function() {
+        filterLock = false;
     });
 }
 

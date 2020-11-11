@@ -7,7 +7,7 @@ async function registerSW() {
         try {
             await navigator.serviceWorker.register("./sw.js?v=20200616-4"); 
         } catch (e) {
-            alert("ServiceWorker registration failed!"); 
+            alert("ServiceWorker registration failed!");
         }
     }
 }
