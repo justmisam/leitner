@@ -9,11 +9,10 @@ function filter(db, text) {
         i++;
         $("#list ul").append("<li><a href=\"./edit.html#" + card.id + "\">" + card.front + "<span class=\"tip\">" + card.box + "</span></a></li>");
     }, function() {
+        filterLock = false;
         if (i == 0) {
             $("#list ul").html("<br/>List is empty!");
         }
-    }, function() {
-        filterLock = false;
     });
 }
 
