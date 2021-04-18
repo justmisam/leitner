@@ -1,12 +1,12 @@
 # Letiner
 
-Smart Leitner.
+An intelligent Leitner to memorize information, especially words, without needing to maintain boxes manually. It can sync with Dropbox.
 
-PWA version of [Pronunciation](https://cafebazaar.ir/app/ir.misam.leitner)
+PWA version of [Leitner](https://cafebazaar.ir/app/ir.misam.leitner)
 
 Designed by [Misam Saki](http://misam.ir)
 
-See [Online](https://leitner.misam.ir/)
+See the [Online Version](https://leitner.misam.ir/)
 
 ## License
 
