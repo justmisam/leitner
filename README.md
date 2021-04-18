@@ -1,6 +1,6 @@
 # Letiner
 
-An intelligent Leitner to memorize information, especially words, without needing to maintain boxes manually. It can sync with Dropbox.
+An intelligent Leitner to memorize information, especially words, without needing to maintain boxes manually. It can be synced with Dropbox.
 
 PWA version of [Leitner](https://cafebazaar.ir/app/ir.misam.leitner)
 
